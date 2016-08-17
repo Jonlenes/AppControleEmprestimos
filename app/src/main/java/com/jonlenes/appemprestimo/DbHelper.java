@@ -49,7 +49,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String sql = "CREATE TABLE IF NOT EXISTS Emprestimo\n" +
                 "(\n" +
                 "id                     INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
-                "descrição              VARCHAR(100) NOT NULL,\n" +
+                "descricao              VARCHAR(100) NOT NULL,\n" +
                 "valor                  REAL NOT NULL,\n" +
                 "data                   VARCHAR(20) NOT NULL,\n" +
                 "qtdeParcelas           INTEGER NOT NULL,\n" +
@@ -70,7 +70,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 "valorJuros         REAL NULL,\n" +
                 "valorMultaAtraso   REAL NULL,\n" +
                 "status             SMALLINT NOT NULL,\n" +
-                "dataPagamento      VARCHAR(20) NULL,\n" +
+                "dataPagamento      VARCHAR(20) NULL\n" +
                 ")";
         db.execSQL(sql);
     }
