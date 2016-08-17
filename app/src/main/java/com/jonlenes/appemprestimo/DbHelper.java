@@ -14,7 +14,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DbHelper extends SQLiteOpenHelper {
 
     private final static String DATABASE_NAME = "Emprestimo";
-    private final static int DATABASE_VERSION = 1;
+    private final static int DATABASE_VERSION = 5;
     private static DbHelper ourInstance = null;
 
     private DbHelper(Context context) {
@@ -40,8 +40,8 @@ public class DbHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
-        db.execSQL("DROP TABLE Emprestimo");
-        db.execSQL("DROP TABLE Parcela");
+        db.execSQL("DROP TABLE IF EXISTS Emprestimo");
+        db.execSQL("DROP TABLE IF EXISTS Parcela");
         onCreate(db);
     }
 
@@ -60,7 +60,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void createTableParcela(SQLiteDatabase db){
-        String sql = "CREATE TABLE IF NOT EXISTS Emprestimo\n" +
+        String sql = "CREATE TABLE IF NOT EXISTS Parcela\n" +
                 "(\n" +
                 "id                 INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                 "idEmprestimo       INTEGER NOT NULL,\n" +

@@ -36,7 +36,16 @@ public class Util {
     }
 
     static public String formatDateBd(Date date) {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+        if (date == null)
+            return null;
+
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     static public Date parseDateBd(String sDate) {

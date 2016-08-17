@@ -12,11 +12,18 @@ public class EmprestimoBo {
     public void insert(Emprestimo emprestimo) {
 
         ParcelaDao parcelaDao = new ParcelaDao();
-        new EmprestimoDao().insert(emprestimo);
+        EmprestimoDao emprestimoDao = new EmprestimoDao();
+
+        if (emprestimo.getId() == -1) {
+            emprestimoDao.insert(emprestimo);
+            emprestimo.setId(emprestimoDao.getMaxId());
+        } else {
+            //update
+        }
 
 
-        Long diasAntesPrimeiraParcela = TimeUnit.DAYS.convert(emprestimo.getData().getTime()
-                -  emprestimo.getDataPrimeiraParcela().getTime(), TimeUnit.MILLISECONDS);
+        Long diasAntesPrimeiraParcela = TimeUnit.DAYS.convert(emprestimo.getDataPrimeiraParcela().getTime()
+                - emprestimo.getData().getTime(), TimeUnit.MILLISECONDS);
 
         if (diasAntesPrimeiraParcela < 10 && emprestimo.getQtdeParcelas() == 1)
 

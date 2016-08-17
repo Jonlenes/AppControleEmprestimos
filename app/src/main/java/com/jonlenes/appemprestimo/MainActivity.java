@@ -3,16 +3,13 @@ package com.jonlenes.appemprestimo;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -21,25 +18,18 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.NumberPicker;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TimePicker;
-import android.widget.Toast;
 
 import com.jonlenes.appemprestimo.Modelo.Emprestimo;
 import com.jonlenes.appemprestimo.Modelo.EmprestimoBo;
 import com.jonlenes.appemprestimo.Modelo.EmprestimoDao;
 
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -59,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
             FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
             if(fab != null) fab.setOnClickListener(clickListenerNovoEmprestimo);
+
+            ListView lvEmprestimos = (ListView) findViewById(R.id.lvEmprestimos);
+            if (lvEmprestimos != null) lvEmprestimos.setOnItemClickListener(itemClickEmprestimo);
 
         } catch (Exception e) {
             TreatException.treat(MainActivity.this, e);
@@ -92,6 +85,15 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    AdapterView.OnItemClickListener itemClickEmprestimo =  new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Intent intentParcelas = new Intent(MainActivity.this, ParcelasActivity.class);
+            intentParcelas.putExtra("idEmprestimo", ((Emprestimo) parent.getItemAtPosition(position)).getId());
+            startActivity(intentParcelas);
+        }
+    };
 
 
     private View.OnClickListener clickListenerNovoEmprestimo = new View.OnClickListener() {
@@ -582,8 +584,8 @@ public class MainActivity extends AppCompatActivity {
                 convertView = MainActivity.this.getLayoutInflater().inflate(R.layout.lv_emprestimos_row, null);
                 viewHolder = new ViewHolder();
 
-                viewHolder.tvDescricaoEmp = (TextView) convertView.findViewById(R.id.tvDescricaoEmp);
-                viewHolder.tvValorEmp = (TextView) convertView.findViewById(R.id.tvValorEmp);
+                viewHolder.tvDescricaoEmp = (TextView) convertView.findViewById(R.id.tvDataParcela);
+                viewHolder.tvValorEmp = (TextView) convertView.findViewById(R.id.tvValorParcela);
                 viewHolder.tvDateEmp = (TextView) convertView.findViewById(R.id.tvDateEmp);
                 viewHolder.tvStatusEmp = (TextView) convertView.findViewById(R.id.tvStatusEmp);
 

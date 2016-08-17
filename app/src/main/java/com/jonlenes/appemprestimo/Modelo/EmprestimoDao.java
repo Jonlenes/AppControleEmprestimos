@@ -52,4 +52,12 @@ public class EmprestimoDao {
 
         return emprestimos;
     }
+
+    public Long getMaxId() {
+        String sql = "SELECT MAX(id) AS id FROM Emprestimo";
+
+        Cursor cursor = db.rawQuery(sql, null);
+        cursor.moveToNext();
+        return cursor.getLong(0);
+    }
 }
