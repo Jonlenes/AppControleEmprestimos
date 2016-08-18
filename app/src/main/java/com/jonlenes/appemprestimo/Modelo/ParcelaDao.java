@@ -38,7 +38,7 @@ public class ParcelaDao {
     }
 
     public List<Parcela> getAllByEmprestimo(Long idEmprestimo) {
-        String sql = "SELECT id, idEmprestimo, numero, dataVencimento, valorPrincipal\n" +
+        String sql = "SELECT id, idEmprestimo, numero, dataVencimento, valorPrincipal, \n" +
                 "valorJuros, valorMultaAtraso, status, dataPagamento FROM Parcela\n" +
                 "WHERE idEmprestimo = " + idEmprestimo;
 

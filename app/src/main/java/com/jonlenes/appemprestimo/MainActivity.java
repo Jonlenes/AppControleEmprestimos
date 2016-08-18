@@ -166,12 +166,6 @@ public class MainActivity extends AppCompatActivity {
                     return dialog;
                 }
 
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    super.onDismiss(dialog);
-                    new BuscaEmprestimosAsyncTask().execute();
-                }
-
                 class ClickDate implements View.OnClickListener {
 
                     private EditText edtDate;
@@ -291,8 +285,10 @@ public class MainActivity extends AppCompatActivity {
 
                         if (exception != null)
                             TreatException.treat(MainActivity.this, exception);
-                        else
+                        else {
                             dialog.dismiss();
+                            new BuscaEmprestimosAsyncTask().execute();
+                        }
                     }
                 }
 

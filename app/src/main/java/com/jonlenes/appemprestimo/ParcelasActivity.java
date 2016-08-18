@@ -1,11 +1,15 @@
 package com.jonlenes.appemprestimo;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -16,6 +20,7 @@ import com.jonlenes.appemprestimo.Modelo.Parcela;
 import com.jonlenes.appemprestimo.Modelo.ParcelaDao;
 
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,12 +33,31 @@ public class ParcelasActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parcelas);
 
+        ListView lvParcelas = (ListView) findViewById(R.id.lvParcelas);
+        if (lvParcelas != null) lvParcelas.setOnItemClickListener(itemClickParcela);
+
         idEmprestimo = getIntent().getLongExtra("idEmprestimo", -1);
         if (idEmprestimo == -1)
             finish();
         else
             new BuscaParcelasAsyncTask().execute();
     }
+
+    AdapterView.OnItemClickListener itemClickParcela =  new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Parcela parcela = (Parcela) parent.getItemAtPosition(position);
+            String messege = "Valor principal: " + parcela.getValorPrincipal() + "\n" +
+                    "Valor juros: " + parcela.getValorJuros() + "\n" +
+                    "Valor multa atraso: " + parcela.getValorMultaAtraso();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(ParcelasActivity.this);
+            builder.setTitle("Valores");
+            builder.setMessage(messege);
+            builder.setPositiveButton("Ok", null);
+            builder.create().show();
+        }
+    };
 
 
     private class BuscaParcelasAsyncTask extends AsyncTask<Void, Void, List<Parcela> > {
@@ -140,6 +164,8 @@ public class ParcelasActivity extends AppCompatActivity {
             viewHolder.tvValorParcela.setText(NumberFormat.getCurrencyInstance().format(valorPagar));
             viewHolder.tvStatusParcela.setText("A pagar");
 
+            fillStatus(convertView, viewHolder, parcela);
+
             return convertView;
         }
 
@@ -147,6 +173,16 @@ public class ParcelasActivity extends AppCompatActivity {
             TextView tvDataParcela;
             TextView tvValorParcela;
             TextView tvStatusParcela;
+        }
+
+        private void fillStatus(View convertView, ViewHolder viewHolder, Parcela parcela) {
+            String status[] = {"A pagar", "Paga", "Em atraso"};
+            int colors[] = {ContextCompat.getColor(ParcelasActivity.this, R.color.colorParcelaPagar),
+                    ContextCompat.getColor(ParcelasActivity.this, R.color.colorParcelaPaga),
+                    ContextCompat.getColor(ParcelasActivity.this, R.color.colorParcelaVencida)};
+
+            convertView.setBackgroundColor(colors[parcela.getStatus()]);
+            viewHolder.tvStatusParcela.setText(status[parcela.getStatus()]);
         }
     }
 }
