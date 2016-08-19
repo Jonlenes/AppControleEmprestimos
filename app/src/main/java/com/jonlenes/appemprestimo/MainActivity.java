@@ -3,7 +3,6 @@ package com.jonlenes.appemprestimo;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,6 +12,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
@@ -25,11 +26,14 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.jonlenes.appemprestimo.Geral.ClickDate;
+import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.Modelo.Emprestimo;
 import com.jonlenes.appemprestimo.Modelo.EmprestimoBo;
 import com.jonlenes.appemprestimo.Modelo.EmprestimoDao;
 
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -131,12 +135,16 @@ public class MainActivity extends AppCompatActivity {
                         edtDatePrimeiraParcela = (EditText) view.findViewById(R.id.edtDatePrimeiraParcela);
 
                         //Valores padrão
-                        edtDataEmp.setText(Util.formatDate(new Date()));
-                        edtDatePrimeiraParcela.setText(Util.formatDate(new Date()));
+                        edtDataEmp.setText(DateUtil.formatDate(new Date()));
+                        edtDatePrimeiraParcela.setText(DateUtil.formatDate(new Date()));
+                        //edtValorEmp.setText(NumberFormat.getCurrencyInstance().format(0));
 
-                        //Click
-                        edtDataEmp.setOnClickListener(new ClickDate(edtDataEmp));
-                        edtDatePrimeiraParcela.setOnClickListener(new ClickDate(edtDatePrimeiraParcela));
+                        //Eventos
+                        edtDataEmp.setOnClickListener(new ClickDate(MainActivity.this.getSupportFragmentManager(),
+                                edtDataEmp));
+                        edtDatePrimeiraParcela.setOnClickListener(new ClickDate(MainActivity.this.getSupportFragmentManager(),
+                                edtDatePrimeiraParcela));
+                        //edtValorEmp.addTextChangedListener(textWatcherValor);
 
                         //Criando o dialog
                         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -166,40 +174,6 @@ public class MainActivity extends AppCompatActivity {
                     return dialog;
                 }
 
-                class ClickDate implements View.OnClickListener {
-
-                    private EditText edtDate;
-
-                    ClickDate(EditText edtDate) {
-                        this.edtDate = edtDate;
-                    }
-
-                    @Override
-                    public void onClick(View v) {
-                        class DatePickerFragment extends DialogFragment
-                                implements DatePickerDialog.OnDateSetListener {
-
-                            @Override
-                            public Dialog onCreateDialog(Bundle savedInstanceState) {
-                                Calendar c = Calendar.getInstance();
-                                if (edtDate.getText().length() > 0)
-                                    c.setTime(Util.parseDate(edtDate.getText().toString()));
-                                return new DatePickerDialog(getActivity(), this, c.get(Calendar.YEAR),
-                                        c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
-                            }
-
-                            public void onDateSet(DatePicker view, int year, int month, int day) {
-                                Calendar calendar = Calendar.getInstance();
-                                calendar.set(year, month, day);
-
-                                edtDate.setText(Util.formatDate(calendar.getTime()));
-                            }
-                        }
-
-                        new DatePickerFragment().show(MainActivity.this.getSupportFragmentManager(), "dialog");
-                    }
-                };
-
                 View.OnClickListener clickListenerInserir = new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -210,9 +184,9 @@ public class MainActivity extends AppCompatActivity {
                                 new InsertEmprestimoAsyncTask().execute(new Emprestimo(idEmprestimo,
                                         edtDescricaoEmp.getText().toString(),
                                         Double.parseDouble(edtValorEmp.getText().toString()),
-                                        Util.parseDate(edtDataEmp.getText().toString()),
+                                        DateUtil.parseDate(edtDataEmp.getText().toString()),
                                         Long.parseLong(edtQtdeParcelas.getText().toString()),
-                                        Util.parseDate(edtDatePrimeiraParcela.getText().toString())));
+                                        DateUtil.parseDate(edtDatePrimeiraParcela.getText().toString())));
 
                                 dialog.dismiss();
                             }
@@ -223,6 +197,35 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 };
+
+/*
+                private TextWatcher textWatcherValor = new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        EditText editTex = edtValorEmp;
+                        if(!s.toString().equals(editTex.getText())) {
+                            editTex.removeTextChangedListener(this);
+                            String cleanString = s.toString().replaceAll("[$,.]", "");
+                            double parsed = Double.parseDouble(cleanString.replaceAll("[^\\d]", ""));
+                            String formatted = NumberFormat.getCurrencyInstance().format((parsed / 100));
+                            editTex.setText(formatted);
+                            editTex.setSelection(formatted.length());
+
+                            editTex.addTextChangedListener(this);
+                        }
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+
+                    }
+                };
+*/
 
 
                 private boolean validFields() {
@@ -437,8 +440,8 @@ public class MainActivity extends AppCompatActivity {
                                 dismiss();
                             } else {
 
-                                edtDateReserve.setText(Util.formatDate(Reserve.getDateDay()));
-                                edtHoursReserva.setText(Util.formatTime(Reserve.getStartTime()));
+                                edtDateReserve.setText(DateUtil.formatDate(Reserve.getDateDay()));
+                                edtHoursReserva.setText(DateUtil.formatTime(Reserve.getStartTime()));
                                 edtDurationReserve.setText(String.valueOf(Reserve.getDuration()));
                                 spnClientReserve.setSelection(getIndexItemSpinner(spnClientReserve, Reserve.getClient().getId()));
                                 spnLocalReserve.setSelection(getIndexItemSpinner(spnLocalReserve, Reserve.getLocal().getId()));
@@ -596,7 +599,7 @@ public class MainActivity extends AppCompatActivity {
 
             viewHolder.tvDescricaoEmp.setText(emprestimo.getDescricao());
             viewHolder.tvValorEmp.setText(NumberFormat.getCurrencyInstance().format(emprestimo.getValor()));
-            viewHolder.tvDateEmp.setText(Util.formatDate(emprestimo.getData()));
+            viewHolder.tvDateEmp.setText(DateUtil.formatDate(emprestimo.getData()));
             viewHolder.tvStatusEmp.setText("A pagar");
 
             return convertView;

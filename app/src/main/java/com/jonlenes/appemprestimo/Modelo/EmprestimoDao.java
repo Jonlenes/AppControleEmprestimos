@@ -4,11 +4,10 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.DbHelper;
-import com.jonlenes.appemprestimo.Util;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -28,9 +27,9 @@ public class EmprestimoDao {
 
         contentValues.put("descricao", emprestimo.getDescricao());
         contentValues.put("valor", emprestimo.getValor());
-        contentValues.put("data", Util.formatDateBd(emprestimo.getData()));
+        contentValues.put("data", DateUtil.formatDateBd(emprestimo.getData()));
         contentValues.put("qtdeParcelas", emprestimo.getQtdeParcelas());
-        contentValues.put("dataPrimeiraParcela", Util.formatDateBd(emprestimo.getDataPrimeiraParcela()));
+        contentValues.put("dataPrimeiraParcela", DateUtil.formatDateBd(emprestimo.getDataPrimeiraParcela()));
 
         db.insert("Emprestimo", "id", contentValues);
     }
@@ -46,9 +45,9 @@ public class EmprestimoDao {
             emprestimos.add(new Emprestimo(cursor.getLong(0),
                     cursor.getString(1),
                     cursor.getDouble(2),
-                    Util.parseDateBd(cursor.getString(3)),
+                    DateUtil.parseDateBd(cursor.getString(3)),
                     cursor.getLong(4),
-                    Util.parseDateBd(cursor.getString(5))));
+                    DateUtil.parseDateBd(cursor.getString(5))));
 
         return emprestimos;
     }

@@ -4,8 +4,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.DbHelper;
-import com.jonlenes.appemprestimo.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,14 +27,25 @@ public class ParcelaDao {
 
         contentValues.put("idEmprestimo", parcela.getIdEmprestimo());
         contentValues.put("numero", parcela.getNumero());
-        contentValues.put("dataVencimento", Util.formatDateBd(parcela.getDataVencimento()));
+        contentValues.put("dataVencimento", DateUtil.formatDateBd(parcela.getDataVencimento()));
         contentValues.put("valorPrincipal", parcela.getValorPrincipal());
         contentValues.put("valorJuros", parcela.getValorJuros());
         contentValues.put("valorMultaAtraso", parcela.getValorMultaAtraso());
         contentValues.put("status", parcela.getStatus());
-        contentValues.put("dataPagamento",  Util.formatDateBd(parcela.getDataPagamento()));
+        contentValues.put("dataPagamento",  DateUtil.formatDateBd(parcela.getDataPagamento()));
 
         db.insert("Parcela", "id", contentValues);
+    }
+
+    public void update(Parcela parcela) {
+
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put("valorMultaAtraso", parcela.getValorMultaAtraso());
+        contentValues.put("status", parcela.getStatus());
+        contentValues.put("dataPagamento",  DateUtil.formatDateBd(parcela.getDataPagamento()));
+
+        db.update("Parcela", contentValues, "id = " + parcela.getId(), null);
     }
 
     public List<Parcela> getAllByEmprestimo(Long idEmprestimo) {
@@ -49,12 +60,12 @@ public class ParcelaDao {
             parcelas.add(new Parcela(cursor.getLong(0),
                     cursor.getLong(1),
                     cursor.getLong(2),
-                    Util.parseDateBd(cursor.getString(3)),
+                    DateUtil.parseDateBd(cursor.getString(3)),
                     cursor.getDouble(4),
                     cursor.getDouble(5),
                     cursor.getDouble(6),
                     cursor.getInt(7),
-                    !cursor.isNull(8)? Util.parseDateBd(cursor.getString(8)) : null));
+                    !cursor.isNull(8)? DateUtil.parseDateBd(cursor.getString(8)) : null));
 
         return parcelas;
     }

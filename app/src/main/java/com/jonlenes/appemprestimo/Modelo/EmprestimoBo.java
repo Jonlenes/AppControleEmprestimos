@@ -46,7 +46,7 @@ public class EmprestimoBo {
                         calendar.getTime(),
                         valorPricipalParcela,
                         valorJurosParcela,
-                        0));
+                        StatusParcela.pagar.ordinal()));
 
                 calendar.add(Calendar.MONTH, 1);
             }

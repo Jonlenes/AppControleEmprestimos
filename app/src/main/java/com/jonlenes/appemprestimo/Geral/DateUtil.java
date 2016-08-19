@@ -1,4 +1,4 @@
-package com.jonlenes.appemprestimo;
+package com.jonlenes.appemprestimo.Geral;
 
 import java.util.Date;
 import java.sql.Time;
@@ -8,11 +8,11 @@ import java.text.SimpleDateFormat;
 /**
  * Created by asus on 21/07/2016.
  */
-public class Util {
+public class DateUtil {
     static public Date parseDate(String sDate) {
         try {
             return new Date(new SimpleDateFormat("dd/MM/yyyy").parse(sDate).getTime());
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -51,7 +51,7 @@ public class Util {
     static public Date parseDateBd(String sDate) {
         try {
             return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sDate);
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

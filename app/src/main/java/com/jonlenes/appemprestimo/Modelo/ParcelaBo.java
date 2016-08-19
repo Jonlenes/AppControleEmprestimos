@@ -1,6 +1,7 @@
 package com.jonlenes.appemprestimo.Modelo;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -9,11 +10,31 @@ import java.util.concurrent.TimeUnit;
 
 public class ParcelaBo {
 
-    private void calculaValorParcelaHoje(Parcela parcela) {
-        Long diffDay = TimeUnit.DAYS.convert(parcela.getDataPagamento().getTime() - new Date().getTime(), TimeUnit.MILLISECONDS);
-        if (diffDay > 0)
-            parcela.setValorMultaAtraso(parcela.getValorPrincipal() * diffDay * 0.005);
-        else if (Math.abs(diffDay) >= 30)
-            parcela.setValorJuros(parcela.getValorJuros() / 2);
+    private Double calculaMulta(Parcela parcela) {
+        return parcela.getValorPrincipal() * (TimeUnit.DAYS.convert(new Date().getTime() -
+                parcela.getDataVencimento().getTime(), TimeUnit.MILLISECONDS)) * 0.005;
     }
+
+    public List<Parcela> getAllByEmprestimo(Long idEmprestimo) {
+        List<Parcela> parcelas = new ParcelaDao().getAllByEmprestimo(idEmprestimo);
+
+        for (Parcela parcela : parcelas) {
+            if (parcela.getStatus() != StatusParcela.pago.ordinal() &&
+                    ((TimeUnit.DAYS.convert(parcela.getDataVencimento().getTime() -
+                                            new Date().getTime(), TimeUnit.MILLISECONDS)) < 0) ) {
+                parcela.setStatus(StatusParcela.atrasada.ordinal());
+                parcela.setValorMultaAtraso(calculaMulta(parcela));
+            }
+        }
+
+        return parcelas;
+    }
+
+    public void pagarParcela(Parcela parcela) {
+
+        parcela.setDataPagamento(new Date());
+        parcela.setStatus(StatusParcela.pago.ordinal());
+        new ParcelaDao().update(parcela);
+    }
+
 }
