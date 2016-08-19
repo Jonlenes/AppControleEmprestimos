@@ -1,7 +1,7 @@
 package com.jonlenes.appemprestimo;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -14,15 +14,12 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.jonlenes.appemprestimo.Modelo.Emprestimo;
-import com.jonlenes.appemprestimo.Modelo.EmprestimoDao;
+import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.Modelo.Parcela;
-import com.jonlenes.appemprestimo.Modelo.ParcelaDao;
+import com.jonlenes.appemprestimo.Modelo.ParcelaBo;
 
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.List;
-import java.util.Locale;
 
 public class ParcelasActivity extends AppCompatActivity {
 
@@ -34,7 +31,10 @@ public class ParcelasActivity extends AppCompatActivity {
         setContentView(R.layout.activity_parcelas);
 
         ListView lvParcelas = (ListView) findViewById(R.id.lvParcelas);
-        if (lvParcelas != null) lvParcelas.setOnItemClickListener(itemClickParcela);
+        if (lvParcelas != null) {
+            lvParcelas.setOnItemClickListener(itemClickParcela);
+            lvParcelas.setOnItemLongClickListener(itemLongClickListenerParcela);
+        }
 
         idEmprestimo = getIntent().getLongExtra("idEmprestimo", -1);
         if (idEmprestimo == -1)
@@ -47,15 +47,47 @@ public class ParcelasActivity extends AppCompatActivity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Parcela parcela = (Parcela) parent.getItemAtPosition(position);
-            String messege = "Valor principal: " + parcela.getValorPrincipal() + "\n" +
-                    "Valor juros: " + parcela.getValorJuros() + "\n" +
-                    "Valor multa atraso: " + parcela.getValorMultaAtraso();
+            String messege = "Valor principal: " + NumberFormat.getCurrencyInstance().format(
+                    parcela.getValorPrincipal()) + "\n" +
+                    "Valor juros: " + NumberFormat.getCurrencyInstance().format(
+                    parcela.getValorJuros()) + "\n" +
+                    "Valor multa atraso: " + NumberFormat.getCurrencyInstance().format(
+                    parcela.getValorMultaAtraso());
 
             AlertDialog.Builder builder = new AlertDialog.Builder(ParcelasActivity.this);
             builder.setTitle("Valores");
             builder.setMessage(messege);
             builder.setPositiveButton("Ok", null);
             builder.create().show();
+        }
+    };
+
+    AdapterView.OnItemLongClickListener itemLongClickListenerParcela = new AdapterView.OnItemLongClickListener() {
+        @Override
+        public boolean onItemLongClick(final AdapterView<?> parent, View view, int position, long id) {
+            try {
+                final Parcela parcela = (Parcela) parent.getItemAtPosition(position);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(ParcelasActivity.this);
+                builder
+                        .setTitle("Opções")
+                        .setItems(R.array.dialog_options_parcela, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                switch (which) {
+                                    case 0:
+                                        new PagarParcelasAsyncTask().execute(parcela);
+                                        break;
+
+                                }
+                            }
+                        })
+                        .create().show();
+            } catch (Exception e) {
+                return false;
+            }
+
+            return false;
         }
     };
 
@@ -83,7 +115,7 @@ public class ParcelasActivity extends AppCompatActivity {
         protected List<Parcela> doInBackground(Void... params) {
             try {
 
-                return new ParcelaDao().getAllByEmprestimo(idEmprestimo);
+                return new ParcelaBo().getAllByEmprestimo(idEmprestimo);
 
             } catch (Exception e) {
                 exception = e;
@@ -110,6 +142,51 @@ public class ParcelasActivity extends AppCompatActivity {
                     ListView lvParcelas = (ListView) ParcelasActivity.this.findViewById(R.id.lvParcelas);
                     if (lvParcelas != null) lvParcelas.setAdapter(new AdapterListParcela(list));
                 }
+
+            } else
+                TreatException.treat(ParcelasActivity.this, exception);
+        }
+    }
+
+    private class PagarParcelasAsyncTask extends AsyncTask<Parcela, Void, Void > {
+        private final ProgressDialog progressDialog;
+        private Exception exception;
+
+        public PagarParcelasAsyncTask() {
+            progressDialog = new ProgressDialog(ParcelasActivity.this);
+            progressDialog.setMessage("Buscando parcelas...");
+            progressDialog.setCancelable(false);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog.show();
+        }
+
+
+        @Override
+        protected Void doInBackground(Parcela... params) {
+            try {
+
+                new ParcelaBo().pagarParcela(params[0]);
+
+            } catch (Exception e) {
+                exception = e;
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            progressDialog.dismiss();
+
+            if (exception == null) {
+
+                new BuscaParcelasAsyncTask().execute();
 
             } else
                 TreatException.treat(ParcelasActivity.this, exception);
@@ -160,7 +237,7 @@ public class ParcelasActivity extends AppCompatActivity {
             Parcela parcela = list.get(position);
             Double valorPagar = parcela.getValorPrincipal() + parcela.getValorJuros() + parcela.getValorMultaAtraso();
 
-            viewHolder.tvDataParcela.setText(Util.formatDate(parcela.getDataVencimento()));
+            viewHolder.tvDataParcela.setText(DateUtil.formatDate(parcela.getDataVencimento()));
             viewHolder.tvValorParcela.setText(NumberFormat.getCurrencyInstance().format(valorPagar));
             viewHolder.tvStatusParcela.setText("A pagar");
 
