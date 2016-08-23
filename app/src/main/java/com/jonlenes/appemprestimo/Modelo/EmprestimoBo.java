@@ -2,6 +2,7 @@ package com.jonlenes.appemprestimo.Modelo;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -9,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class EmprestimoBo {
-    public void insert(Emprestimo emprestimo) {
+    public void insertOrUpdate(Emprestimo emprestimo) {
 
         ParcelaDao parcelaDao = new ParcelaDao();
         EmprestimoDao emprestimoDao = new EmprestimoDao();
@@ -18,7 +19,16 @@ public class EmprestimoBo {
             emprestimoDao.insert(emprestimo);
             emprestimo.setId(emprestimoDao.getMaxId());
         } else {
-            //update
+
+            List<Parcela> parcelas = parcelaDao.getAllByEmprestimo(emprestimo.getId());
+            for (Parcela parcela : parcelas) {
+                if (parcela.getStatus() == StatusParcela.pago.ordinal())
+                    throw new RuntimeException("Não é possível atualizar o empréstimo, " +
+                            "pois ele possui parcelas pagas.");
+            }
+
+            parcelaDao.deleteByEmprestimo(emprestimo.getId());
+            emprestimoDao.update(emprestimo);
         }
 
 
@@ -51,5 +61,10 @@ public class EmprestimoBo {
                 calendar.add(Calendar.MONTH, 1);
             }
         }
+    }
+
+    public void delete(Long id) {
+        new ParcelaDao().deleteByEmprestimo(id);
+        new EmprestimoDao().delete(id);
     }
 }

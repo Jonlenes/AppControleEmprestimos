@@ -3,10 +3,12 @@ package com.jonlenes.appemprestimo;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringDef;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
@@ -31,6 +33,7 @@ import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.Modelo.Emprestimo;
 import com.jonlenes.appemprestimo.Modelo.EmprestimoBo;
 import com.jonlenes.appemprestimo.Modelo.EmprestimoDao;
+import com.jonlenes.appemprestimo.Modelo.Parcela;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -55,7 +58,10 @@ public class MainActivity extends AppCompatActivity {
             if(fab != null) fab.setOnClickListener(clickListenerNovoEmprestimo);
 
             ListView lvEmprestimos = (ListView) findViewById(R.id.lvEmprestimos);
-            if (lvEmprestimos != null) lvEmprestimos.setOnItemClickListener(itemClickEmprestimo);
+            if (lvEmprestimos != null) {
+                lvEmprestimos.setOnItemClickListener(itemClickEmprestimo);
+                lvEmprestimos.setOnItemLongClickListener(itemLongClickListenerEmprestimo);
+            }
 
         } catch (Exception e) {
             TreatException.treat(MainActivity.this, e);
@@ -90,6 +96,10 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void atualizaEmprestimos() {
+        new BuscaEmprestimosAsyncTask().execute();
+    }
+
     AdapterView.OnItemClickListener itemClickEmprestimo =  new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -103,363 +113,67 @@ public class MainActivity extends AppCompatActivity {
     private View.OnClickListener clickListenerNovoEmprestimo = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            new DialogFragment() {
 
-                private AlertDialog dialog;
-                private View view;
-
-                private EditText edtDescricaoEmp;
-                private EditText edtValorEmp;
-                private EditText edtDataEmp;
-                private EditText edtQtdeParcelas;
-                private EditText edtDatePrimeiraParcela;
-
-                private Long idEmprestimo;
-
-
-                @NonNull
-                @Override
-                public Dialog onCreateDialog(Bundle savedInstanceState) {
-                    super.onCreate(savedInstanceState);
-
-                    try {
-
-                        LayoutInflater inflater = getActivity().getLayoutInflater();
-                        view = inflater.inflate(R.layout.dialog_new_emprestimo, null);
-
-                        //Referêncio os componentes visuais
-                        edtDescricaoEmp = (EditText) view.findViewById(R.id.edtDescricaoEmp);
-                        edtValorEmp = (EditText) view.findViewById(R.id.edtValorEmp);
-                        edtDataEmp = (EditText) view.findViewById(R.id.edtDataEmp);
-                        edtQtdeParcelas = (EditText) view.findViewById(R.id.edtQtdeParcelas);
-                        edtDatePrimeiraParcela = (EditText) view.findViewById(R.id.edtDatePrimeiraParcela);
-
-                        //Valores padrão
-                        edtDataEmp.setText(DateUtil.formatDate(new Date()));
-                        edtDatePrimeiraParcela.setText(DateUtil.formatDate(new Date()));
-                        //edtValorEmp.setText(NumberFormat.getCurrencyInstance().format(0));
-
-                        //Eventos
-                        edtDataEmp.setOnClickListener(new ClickDate(MainActivity.this.getSupportFragmentManager(),
-                                edtDataEmp));
-                        edtDatePrimeiraParcela.setOnClickListener(new ClickDate(MainActivity.this.getSupportFragmentManager(),
-                                edtDatePrimeiraParcela));
-                        //edtValorEmp.addTextChangedListener(textWatcherValor);
-
-                        //Criando o dialog
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                        builder.setView(view)
-                                .setPositiveButton("OK", null)
-                                .setNegativeButton("Cancelar", null);
-
-                        //Setando o titulo
-                        Bundle bundle = getArguments();
-                        idEmprestimo = (bundle != null ? bundle.getLong("idEmprestimo", -1) : -1L);
-                        if (idEmprestimo != -1) builder.setTitle("Atualização de empréstimo");
-                        else builder.setTitle("Novo empréstimo");
-
-                        dialog = builder.create();
-                        dialog.show();
-
-                        //Butão de inserção
-                        dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener(clickListenerInserir);
-
-                        //if (idReserve != -1)
-                        //    new SearchReserveAsyncTask().execute();
-
-                    } catch (Exception e) {
-                        TreatException.treat(MainActivity.this, e);
-                    }
-
-                    return dialog;
-                }
-
-                View.OnClickListener clickListenerInserir = new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        try {
-
-                            if (validFields()) {
-
-                                new InsertEmprestimoAsyncTask().execute(new Emprestimo(idEmprestimo,
-                                        edtDescricaoEmp.getText().toString(),
-                                        Double.parseDouble(edtValorEmp.getText().toString()),
-                                        DateUtil.parseDate(edtDataEmp.getText().toString()),
-                                        Long.parseLong(edtQtdeParcelas.getText().toString()),
-                                        DateUtil.parseDate(edtDatePrimeiraParcela.getText().toString())));
-
-                                dialog.dismiss();
-                            }
-
-
-                        } catch (Exception e) {
-                            TreatException.treat(MainActivity.this, e);
-                        }
-                    }
-                };
-
-/*
-                private TextWatcher textWatcherValor = new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        EditText editTex = edtValorEmp;
-                        if(!s.toString().equals(editTex.getText())) {
-                            editTex.removeTextChangedListener(this);
-                            String cleanString = s.toString().replaceAll("[$,.]", "");
-                            double parsed = Double.parseDouble(cleanString.replaceAll("[^\\d]", ""));
-                            String formatted = NumberFormat.getCurrencyInstance().format((parsed / 100));
-                            editTex.setText(formatted);
-                            editTex.setSelection(formatted.length());
-
-                            editTex.addTextChangedListener(this);
-                        }
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {
-
-                    }
-                };
-*/
-
-
-                private boolean validFields() {
-                    if (edtDescricaoEmp.getText().toString().isEmpty()) {
-                        edtDescricaoEmp.setError("A descrisão deve ser preenchida.");
-                        return false;
-                    }
-
-                    if (edtValorEmp.getText().toString().isEmpty() || Double.parseDouble(
-                            edtValorEmp.getText().toString()) <= 0) {
-                        edtValorEmp.setError("O valor deve ser maior do que zero.");
-                        return false;
-                    }
-
-                    if (edtQtdeParcelas.getText().toString().isEmpty() || Integer.parseInt(
-                            edtQtdeParcelas.getText().toString()) <= 0) {
-                        edtQtdeParcelas.setError("A quantidade de parcelas deve ser maior do que zero.");
-                        return false;
-                    }
-
-                    return true;
-                }
-
-                class InsertEmprestimoAsyncTask extends AsyncTask<Emprestimo, Void, Void> {
-                    private ProgressDialog progressDialog;
-                    private Exception exception;
-
-                    public InsertEmprestimoAsyncTask() {
-                        progressDialog = new ProgressDialog(MainActivity.this);
-                        if (idEmprestimo != -1)
-                            progressDialog.setMessage("Atualizando...");
-                        else
-                            progressDialog.setMessage("Inserindo...");
-                        progressDialog.setCancelable(false);
-                    }
-
-                    @Override
-                    protected void onPreExecute() {
-                        super.onPreExecute();
-                        progressDialog.show();
-                    }
-
-                    @Override
-                    protected Void doInBackground(Emprestimo... params) {
-                        try {
-
-                            new EmprestimoBo().insert(params[0]);
-
-                        } catch (Exception e) {
-                            exception = e;
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void aVoid) {
-                        super.onPostExecute(aVoid);
-
-                        progressDialog.dismiss();
-
-                        if (exception != null)
-                            TreatException.treat(MainActivity.this, exception);
-                        else {
-                            dialog.dismiss();
-                            new BuscaEmprestimosAsyncTask().execute();
-                        }
-                    }
-                }
-
-
-                /*private class SearchClientsAsyncTask extends AsyncTask<Void, Void, List<Client>> {
-                    private ProgressDialog progressDialog;
-                    private Exception exception;
-
-                    public SearchClientsAsyncTask() {
-                        progressDialog = new ProgressDialog(activity);
-                        progressDialog.setMessage("Buscando clientes...");
-                        progressDialog.setCancelable(false);
-                    }
-
-                    @Override
-                    protected void onPreExecute() {
-                        super.onPreExecute();
-                        progressDialog.show();
-                    }
-
-                    @Override
-                    protected List<Client> doInBackground(Void... params) {
-                        try {
-
-                            return new ClientDao().getAllWithoutImage();
-
-                        } catch (Exception e) {
-                            exception = e;
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(List<Client> list) {
-                        super.onPostExecute(list);
-
-                        progressDialog.dismiss();
-
-                        if (exception == null) {
-                            ArrayAdapter<Client> adapterClients = new ArrayAdapter<>(activity,
-                                    android.R.layout.simple_spinner_item, list);
-                            adapterClients.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spnClientReserve.setAdapter(adapterClients);
-                        } else {
-                            TreatException.treat(activity, exception);
-                        }
-
-                    }
-                }
-
-                private class SearchLocalsAsyncTask extends AsyncTask<Void, Void, List<Local>> {
-                    private ProgressDialog progressDialog;
-                    private Exception exception;
-
-                    public SearchLocalsAsyncTask() {
-                        progressDialog = new ProgressDialog(activity);
-                        progressDialog.setMessage("Buscando locais...");
-                        progressDialog.setCancelable(false);
-                    }
-
-                    @Override
-                    protected void onPreExecute() {
-                        super.onPreExecute();
-                        progressDialog.show();
-                    }
-
-                    @Override
-                    protected List<Local> doInBackground(Void... params) {
-                        try {
-
-                            return new LocalDao().getAll();
-
-                        } catch (Exception e) {
-                            exception = e;
-                        }
-
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(List<Local> locals) {
-                        super.onPostExecute(locals);
-
-                        progressDialog.dismiss();
-
-                        if (exception == null) {
-
-                            ArrayAdapter<Local> adapterLocal = new ArrayAdapter<>(activity,
-                                    android.R.layout.simple_spinner_item, locals);
-                            adapterLocal.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spnLocalReserve.setAdapter(adapterLocal);
-
-                        } else {
-                            TreatException.treat(activity, exception);
-                        }
-                    }
-                }
-
-                private class SearchReserveAsyncTask extends AsyncTask<Void, Void, Reserve> {
-                    private final ProgressDialog progressDialog;
-                    private Exception exception;
-
-                    public SearchReserveAsyncTask() {
-                        progressDialog = new ProgressDialog(activity);
-                        progressDialog.setMessage("Buscando reserva...");
-                        progressDialog.setCancelable(false);
-                    }
-
-                    @Override
-                    protected void onPreExecute() {
-                        super.onPreExecute();
-                        progressDialog.show();
-                    }
-
-                    @Override
-                    protected Reserve doInBackground(Void... params) {
-                        try {
-
-                            return new ReserveDao().getReserve(idReserve);
-
-                        } catch (Exception e) {
-                            exception = e;
-                        }
-
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Reserve Reserve) {
-                        super.onPostExecute(Reserve);
-
-                        if (exception == null) {
-
-                            int i = 0;
-                            while (i < 5 && (spnClientReserve.getAdapter().isEmpty() || spnLocalReserve.getAdapter().isEmpty())) {
-                                try {
-                                    wait(1000);
-                                    ++i;
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-
-                            if (i == 5) {
-                                Toast.makeText(activity, "Não foi possível buscar a reserva.", Toast.LENGTH_LONG).show();
-                                dismiss();
-                            } else {
-
-                                edtDateReserve.setText(DateUtil.formatDate(Reserve.getDateDay()));
-                                edtHoursReserva.setText(DateUtil.formatTime(Reserve.getStartTime()));
-                                edtDurationReserve.setText(String.valueOf(Reserve.getDuration()));
-                                spnClientReserve.setSelection(getIndexItemSpinner(spnClientReserve, Reserve.getClient().getId()));
-                                spnLocalReserve.setSelection(getIndexItemSpinner(spnLocalReserve, Reserve.getLocal().getId()));
-
-                            }
-
-
-                        } else {
-                            TreatException.treat(activity, exception);
-                        }
-
-                        progressDialog.dismiss();
-
-                    }
-                }*/
-            }.show(MainActivity.this.getSupportFragmentManager(), "dialog");
+            new DialogNewEmprestimo().show(MainActivity.this.getSupportFragmentManager(), "dialog");
         }
     };
+
+    AdapterView.OnItemLongClickListener itemLongClickListenerEmprestimo = new AdapterView.OnItemLongClickListener() {
+        @Override
+        public boolean onItemLongClick(final AdapterView<?> parent, View view, int position, long id) {
+            try {
+                final Emprestimo emprestimo = (Emprestimo) parent.getItemAtPosition(position);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder
+                        .setTitle("Opções")
+                        .setItems(R.array.dialog_options_emprestimo, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                switch (which) {
+                                    case 0: //Editar
+                                        showDialogAtualizaEmprestimo(emprestimo);
+                                        break;
+
+                                    case 1: //Deletar
+                                        showDeleteEmprestimo(emprestimo);
+                                        break;
+
+                                }
+                            }
+                        }).create().show();
+            } catch (Exception e) {
+                TreatException.treat(MainActivity.this, e);
+            }
+
+            return true;
+        }
+    };
+
+    private void showDialogAtualizaEmprestimo(Emprestimo emprestimo) {
+        DialogNewEmprestimo dialogNewEmprestimo = new DialogNewEmprestimo();
+        Bundle bundle = new Bundle();
+
+        bundle.putLong("idEmprestimo", emprestimo.getId());
+        dialogNewEmprestimo.setArguments(bundle);
+
+        dialogNewEmprestimo.show(MainActivity.this.getSupportFragmentManager(), "dialog");
+    }
+
+    private void showDeleteEmprestimo(final Emprestimo emprestimo) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Confirmação");
+        builder.setMessage("Deseja realmente excluir?");
+        builder.setNegativeButton("Não", null);
+        builder.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                new DeleteEmprestimoAsyncTask().execute(emprestimo.getId());
+            }
+        });
+        builder.create().show();
+    }
+
 
 
     private class InitBdAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -537,18 +251,57 @@ public class MainActivity extends AppCompatActivity {
             if (exception == null) {
 
                 if (list.isEmpty()) {
-
                     TextView tvEmpty = (TextView) MainActivity.this.findViewById(R.id.tvEmpty);
                     if (tvEmpty != null) tvEmpty.setVisibility(View.VISIBLE);
-
-                } else {
-
-                    ListView lvEmprestimos = (ListView) MainActivity.this.findViewById(R.id.lvEmprestimos);
-                    if (lvEmprestimos != null) lvEmprestimos.setAdapter(new AdapterListEmprestimo(list));
                 }
+
+                ListView lvEmprestimos = (ListView) MainActivity.this.findViewById(R.id.lvEmprestimos);
+                if (lvEmprestimos != null) lvEmprestimos.setAdapter(new AdapterListEmprestimo(list));
 
             } else
                 TreatException.treat(MainActivity.this, exception);
+        }
+    }
+
+    private class DeleteEmprestimoAsyncTask extends AsyncTask<Long, Void, Void> {
+        private ProgressDialog progressDialog;
+        private Exception exception;
+
+        public DeleteEmprestimoAsyncTask() {
+            progressDialog = new ProgressDialog(MainActivity.this);
+            progressDialog.setMessage("Deletando...");
+            progressDialog.setCancelable(false);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog.show();
+        }
+
+
+        @Override
+        protected Void doInBackground(Long... params) {
+            try {
+
+                new EmprestimoBo().delete(params[0]);
+
+            } catch (Exception e) {
+                exception = e;
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            progressDialog.dismiss();
+            if (exception != null)
+                TreatException.treat(MainActivity.this, exception);
+
+            new BuscaEmprestimosAsyncTask().execute();
         }
     }
 

@@ -32,7 +32,10 @@ public class ParcelaBo {
 
     public void pagarParcela(Parcela parcela) {
 
-        parcela.setDataPagamento(new Date());
+        if (((TimeUnit.DAYS.convert(parcela.getDataVencimento().getTime() -
+                new Date().getTime(), TimeUnit.MILLISECONDS)) > 5))
+            parcela.setValorJuros(parcela.getValorJuros() / 2.0);
+
         parcela.setStatus(StatusParcela.pago.ordinal());
         new ParcelaDao().update(parcela);
     }

@@ -1,29 +1,37 @@
 package com.jonlenes.appemprestimo;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.jonlenes.appemprestimo.Geral.ClickDate;
 import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.Modelo.Parcela;
 import com.jonlenes.appemprestimo.Modelo.ParcelaBo;
 
 import java.text.NumberFormat;
+import java.util.Date;
 import java.util.List;
 
 public class ParcelasActivity extends AppCompatActivity {
 
     private Long idEmprestimo;
+    private Double valorTotalParcelas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,12 +43,21 @@ public class ParcelasActivity extends AppCompatActivity {
             lvParcelas.setOnItemClickListener(itemClickParcela);
             lvParcelas.setOnItemLongClickListener(itemLongClickListenerParcela);
         }
+        valorTotalParcelas = 0.0;
 
         idEmprestimo = getIntent().getLongExtra("idEmprestimo", -1);
         if (idEmprestimo == -1)
             finish();
         else
             new BuscaParcelasAsyncTask().execute();
+
+        atualizaViewTotalizadora();
+    }
+
+    private void atualizaViewTotalizadora() {
+        TextView tvValorTotal = (TextView) findViewById(R.id.tvValorTotal);
+        if (tvValorTotal != null)
+            tvValorTotal.setText(NumberFormat.getCurrencyInstance().format(valorTotalParcelas));
     }
 
     AdapterView.OnItemClickListener itemClickParcela =  new AdapterView.OnItemClickListener() {
@@ -75,8 +92,67 @@ public class ParcelasActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 switch (which) {
-                                    case 0:
-                                        new PagarParcelasAsyncTask().execute(parcela);
+                                    case 0: //Pagar
+
+                                        new DialogFragment() {
+
+                                            private AlertDialog dialog;
+                                            private View view;
+
+                                            private EditText edtDataPgto;
+
+
+                                            @NonNull
+                                            @Override
+                                            public Dialog onCreateDialog(Bundle savedInstanceState) {
+                                                super.onCreate(savedInstanceState);
+
+                                                try {
+
+                                                    LayoutInflater inflater = getActivity().getLayoutInflater();
+                                                    view = inflater.inflate(R.layout.dialog_pagar, null);
+
+                                                    //Referêncio os componentes visuais
+                                                    edtDataPgto = (EditText) view.findViewById(R.id.edtDataPgto);
+
+                                                    //Valores padrão
+                                                    edtDataPgto.setText(DateUtil.formatDate(new Date()));
+
+                                                    //Eventos
+                                                    edtDataPgto.setOnClickListener(new ClickDate(ParcelasActivity.this.getSupportFragmentManager(),
+                                                            edtDataPgto));
+
+                                                    //Criando o dialog
+                                                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                                                    builder.setView(view)
+                                                            .setTitle("Pagamento")
+                                                            .setPositiveButton("Pagar", null)
+                                                            .setNegativeButton("Cancelar", null);
+
+                                                    dialog = builder.create();
+                                                    dialog.show();
+
+                                                    //Butão de inserção
+                                                    dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener(clickPagar);
+
+
+                                                } catch (Exception e) {
+                                                    TreatException.treat(ParcelasActivity.this, e);
+                                                }
+
+                                                return dialog;
+                                            }
+
+                                            View.OnClickListener clickPagar = new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    parcela.setDataPagamento(DateUtil.parseDate(edtDataPgto.getText().toString()));
+                                                    new PagarParcelasAsyncTask().execute(parcela);
+                                                    dialog.dismiss();
+                                                }
+                                            };
+                                        }.show(ParcelasActivity.this.getSupportFragmentManager(), "dialog");
+
                                         break;
 
                                 }

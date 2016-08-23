@@ -42,10 +42,15 @@ public class ParcelaDao {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put("valorMultaAtraso", parcela.getValorMultaAtraso());
+        contentValues.put("valorJuros", parcela.getValorJuros());
         contentValues.put("status", parcela.getStatus());
         contentValues.put("dataPagamento",  DateUtil.formatDateBd(parcela.getDataPagamento()));
 
         db.update("Parcela", contentValues, "id = " + parcela.getId(), null);
+    }
+
+    public void deleteByEmprestimo(Long idEmprestimo) {
+        db.delete("Parcela", "idEmprestimo = " + idEmprestimo, null);
     }
 
     public List<Parcela> getAllByEmprestimo(Long idEmprestimo) {

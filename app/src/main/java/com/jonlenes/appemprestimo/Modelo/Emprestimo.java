@@ -14,9 +14,19 @@ public class Emprestimo {
     private Date data;
     private Long qtdeParcelas;
     private Date dataPrimeiraParcela;
+    private Integer qtdeParcelasPagar;
 
-    public Emprestimo(Long id, String descricao, Double valor, Date data,
-                      Long qtdeParcelas, Date dataPrimeiraParcela) {
+    public Emprestimo(Long id, String descricao, Double valor, Date data, Long qtdeParcelas, Date dataPrimeiraParcela, Integer qtdeParcelasPagar) {
+        this.id = id;
+        this.descricao = descricao;
+        this.valor = valor;
+        this.data = data;
+        this.qtdeParcelas = qtdeParcelas;
+        this.dataPrimeiraParcela = dataPrimeiraParcela;
+        this.qtdeParcelasPagar = qtdeParcelasPagar;
+    }
+
+    public Emprestimo(Long id, String descricao, Double valor, Date data, Long qtdeParcelas, Date dataPrimeiraParcela) {
         this.id = id;
         this.descricao = descricao;
         this.valor = valor;
@@ -80,5 +90,13 @@ public class Emprestimo {
 
     public void setDataPrimeiraParcela(Date dataPrimeiraParcela) {
         this.dataPrimeiraParcela = dataPrimeiraParcela;
+    }
+
+    public Integer getQtdeParcelasPagar() {
+        return qtdeParcelasPagar;
+    }
+
+    public void setQtdeParcelasPagar(Integer qtdeParcelasPagar) {
+        this.qtdeParcelasPagar = qtdeParcelasPagar;
     }
 }

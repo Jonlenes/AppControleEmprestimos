@@ -5,5 +5,10 @@
         <item>Pagar parcela</item>
     </array>
 
+    <array name="dialog_options_emprestimo">
+        <item>Editar</item>
+        <item>Deletar</item>
+    </array>
+
 
 </resources>
