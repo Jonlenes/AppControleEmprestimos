@@ -18,7 +18,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ParcelasActivity"></activity>
+        <activity android:name=".ParcelasActivity" />
+        <activity android:name=".ParcelasPagarActivity"></activity>
     </application>
 
 </manifest>

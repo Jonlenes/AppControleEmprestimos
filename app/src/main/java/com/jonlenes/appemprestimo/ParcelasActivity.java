@@ -1,36 +1,32 @@
 package com.jonlenes.appemprestimo;
 
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.jonlenes.appemprestimo.Geral.ClickDate;
 import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.Modelo.Parcela;
 import com.jonlenes.appemprestimo.Modelo.ParcelaBo;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class ParcelasActivity extends AppCompatActivity {
 
     private Long idEmprestimo;
+    private List<Parcela> parcelas;
     private Double valorTotalParcelas;
 
     @Override
@@ -43,6 +39,8 @@ public class ParcelasActivity extends AppCompatActivity {
             lvParcelas.setOnItemClickListener(itemClickParcela);
             lvParcelas.setOnItemLongClickListener(itemLongClickListenerParcela);
         }
+        RadioGroup radioGroupFiltro = (RadioGroup) findViewById(R.id.rgFiltroParcelas) ;
+        if (radioGroupFiltro != null) radioGroupFiltro.setOnCheckedChangeListener(checkedRadioGroupFiltro);
         valorTotalParcelas = 0.0;
 
         idEmprestimo = getIntent().getLongExtra("idEmprestimo", -1);
@@ -167,6 +165,14 @@ public class ParcelasActivity extends AppCompatActivity {
         }
     };
 
+    RadioGroup.OnCheckedChangeListener checkedRadioGroupFiltro = new RadioGroup.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(RadioGroup group, int checkedId) {
+            filtrarParcelas(checkedId == R.id.rbParcelasTodas? -1 : (checkedId == R.id.rbParcelasPagar?
+                    StatusParcela.pagar.ordinal() : StatusParcela.pago.ordinal()));
+        }
+    };
+
 
     private class BuscaParcelasAsyncTask extends AsyncTask<Void, Void, List<Parcela> > {
         private final ProgressDialog progressDialog;
@@ -215,13 +221,31 @@ public class ParcelasActivity extends AppCompatActivity {
 
                 } else {
 
-                    ListView lvParcelas = (ListView) ParcelasActivity.this.findViewById(R.id.lvParcelas);
-                    if (lvParcelas != null) lvParcelas.setAdapter(new AdapterListParcela(list));
+                    parcelas = list;
+                    filtrarParcelas(-1);
                 }
 
             } else
                 TreatException.treat(ParcelasActivity.this, exception);
         }
+    }
+
+    private void filtrarParcelas(int status) {
+
+        List<Parcela> list;
+
+        if (status == -1) {
+            list = parcelas;
+        } else {
+            list = new ArrayList<>();
+            for (Parcela parcela : parcelas) {
+                if (parcela.getStatus() == status)
+                    list.add(parcela);
+            }
+        }
+
+        ListView lvParcelas = (ListView) ParcelasActivity.this.findViewById(R.id.lvParcelas);
+        if (lvParcelas != null) lvParcelas.setAdapter(new AdapterListParcela(list));
     }
 
     private class PagarParcelasAsyncTask extends AsyncTask<Parcela, Void, Void > {
@@ -301,7 +325,7 @@ public class ParcelasActivity extends AppCompatActivity {
                 convertView = ParcelasActivity.this.getLayoutInflater().inflate(R.layout.lv_parcelas_row, null);
                 viewHolder = new ViewHolder();
 
-                viewHolder.tvDataParcela = (TextView) convertView.findViewById(R.id.tvDataParcela);
+                viewHolder.tvDataParcela = (TextView) convertView.findViewById(R.id.tvNumeroParcela);
                 viewHolder.tvValorParcela = (TextView) convertView.findViewById(R.id.tvValorParcela);
                 viewHolder.tvStatusParcela = (TextView) convertView.findViewById(R.id.tvStatusParcela);
 
