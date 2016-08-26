@@ -1,22 +1,30 @@
 package com.jonlenes.appemprestimo;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.jonlenes.appemprestimo.Geral.ClickDate;
 import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.Modelo.Parcela;
 import com.jonlenes.appemprestimo.Modelo.ParcelaBo;
+import com.jonlenes.appemprestimo.Modelo.StatusParcela;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
