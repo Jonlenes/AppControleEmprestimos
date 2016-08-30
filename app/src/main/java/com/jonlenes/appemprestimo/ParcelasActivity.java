@@ -347,7 +347,6 @@ public class ParcelasActivity extends AppCompatActivity {
 
             viewHolder.tvDataParcela.setText(DateUtil.formatDate(parcela.getDataVencimento()));
             viewHolder.tvValorParcela.setText(NumberFormat.getCurrencyInstance().format(valorPagar));
-            viewHolder.tvStatusParcela.setText("A pagar");
 
             fillStatus(convertView, viewHolder, parcela);
 

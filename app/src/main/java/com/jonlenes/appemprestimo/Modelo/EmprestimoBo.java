@@ -67,4 +67,16 @@ public class EmprestimoBo {
         new ParcelaDao().deleteByEmprestimo(id);
         new EmprestimoDao().delete(id);
     }
+
+    public List<Emprestimo> getEmprestimoComParcela(Date dateInicial, Date dateFinal, Integer status) {
+        List<Emprestimo> emprestimos = new EmprestimoDao().getEmprestimoComParcela(dateInicial, dateFinal, status);
+        ParcelaBo parcelaBo = new ParcelaBo();
+
+        for (Emprestimo emprestimo : emprestimos) {
+            emprestimo.getParcelas().get(0).setValorMultaAtraso(parcelaBo.calculaMulta(
+                    emprestimo.getParcelas().get(0)));
+        }
+
+        return emprestimos;
+    }
 }

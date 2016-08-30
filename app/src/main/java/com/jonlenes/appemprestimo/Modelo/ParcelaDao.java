@@ -76,35 +76,4 @@ public class ParcelaDao {
 
         return parcelas;
     }
-
-    public Map<Emprestimo, Parcela> getParcelas(Date dateInicial, Date dateFinal, Integer status) {
-        String sql = "SELECT Emprestimo.descricao, Emprestimo.qtdeParcelas, Emprestimo.descricao,\n" +
-                "       Parcela.id, Parcela.idEmprestimo, Parcela.numero, arcela.dataVencimento,\n" +
-                "       Parcela.valorPrincipal, Parcela.valorJuros, Parcela.valorMultaAtraso,\n" +
-                "       Parcela.status, Parcela.dataPagamento\n" +
-                "FROM   Parcela\n" +
-                "INNER JOIN Emprestimo\n" +
-                "   ON  Emprestimo.id = Parcela.idEmprestimo\n" +
-                "WHERE  Parcela.dataVencimento BETWEEN 'aaaaa' AND 'bbbbbbb'\n" +
-                "       AND Parcela.status\n" +
-                "ORDER BY\n" +
-                "       Parcela.dataVencimento,\n" +
-                "       Emprestimo.id" + ;
-
-        Cursor cursor = db.rawQuery(sql, null);
-        List<Parcela> parcelas = new ArrayList<>();
-
-        while (cursor.moveToNext())
-            parcelas.add(new com.jonlenes.appemprestimo.Modelo.Parcela(cursor.getLong(0),
-                    cursor.getLong(1),
-                    cursor.getLong(2),
-                    DateUtil.parseDateBd(cursor.getString(3)),
-                    cursor.getDouble(4),
-                    cursor.getDouble(5),
-                    cursor.getDouble(6),
-                    cursor.getInt(7),
-                    !cursor.isNull(8)? DateUtil.parseDateBd(cursor.getString(8)) : null));
-
-        return parcelas;
-    }
 }

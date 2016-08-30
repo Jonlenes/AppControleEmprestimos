@@ -27,4 +27,14 @@
         android:layout_below="@+id/btnPeriodo"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nenhum parcela"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:visibility="invisible"
+        android:layout_alignTop="@+id/lvParcelasPagar"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ParcelaBo {
 
-    private Double calculaMulta(Parcela parcela) {
+    public Double calculaMulta(Parcela parcela) {
         return parcela.getValorPrincipal() * (TimeUnit.DAYS.convert(new Date().getTime() -
                 parcela.getDataVencimento().getTime(), TimeUnit.MILLISECONDS)) * 0.005;
     }

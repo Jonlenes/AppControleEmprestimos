@@ -8,6 +8,7 @@ import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.DbHelper;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -100,5 +101,38 @@ public class EmprestimoDao {
         Cursor cursor = db.rawQuery(sql, null);
         cursor.moveToNext();
         return cursor.getLong(0);
+    }
+
+    public List<Emprestimo> getEmprestimoComParcela(Date dateInicial, Date dateFinal, Integer status) {
+        String sql = "SELECT Emprestimo.descricao, Emprestimo.qtdeParcelas, \n" +
+                "       Parcela.id, Parcela.idEmprestimo, Parcela.numero, Parcela.dataVencimento,\n" +
+                "       Parcela.valorPrincipal, Parcela.valorJuros, Parcela.valorMultaAtraso,\n" +
+                "       Parcela.status, Parcela.dataPagamento\n" +
+                "FROM   Emprestimo\n" +
+                "INNER JOIN Parcela\n" +
+                "   ON  Emprestimo.id = Parcela.idEmprestimo\n" +
+                "WHERE  Parcela.dataVencimento BETWEEN '" + DateUtil.formatDateBd(dateInicial) + "'\n" +
+                "       AND '" + DateUtil.formatDateBd(dateFinal) + "'\n" +
+                "       AND Parcela.status = " + status + "\n" +
+                "ORDER BY\n" +
+                "       Parcela.dataVencimento,\n" +
+                "       Emprestimo.id";
+
+        Cursor cursor = db.rawQuery(sql, null);
+        List<Emprestimo> list = new ArrayList<>();
+
+        while (cursor.moveToNext())
+            list.add(new Emprestimo(cursor.getString(0), cursor.getLong(1),
+                    new Parcela(cursor.getLong(2),
+                            cursor.getLong(3),
+                            cursor.getLong(4),
+                            DateUtil.parseDateBd(cursor.getString(5)),
+                            cursor.getDouble(6),
+                            cursor.getDouble(7),
+                            cursor.getDouble(8),
+                            cursor.getInt(9),
+                            !cursor.isNull(10)? DateUtil.parseDateBd(cursor.getString(10)) : null)));
+
+        return list;
     }
 }

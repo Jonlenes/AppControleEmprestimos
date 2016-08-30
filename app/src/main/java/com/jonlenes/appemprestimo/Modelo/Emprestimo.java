@@ -1,6 +1,8 @@
 package com.jonlenes.appemprestimo.Modelo;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Jonlenes on 11/08/2016.
@@ -15,6 +17,7 @@ public class Emprestimo {
     private Long qtdeParcelas;
     private Date dataPrimeiraParcela;
     private Integer qtdeParcelasPagar;
+    private List<Parcela> parcelas;
 
     public Emprestimo(Long id, String descricao, Double valor, Date data, Long qtdeParcelas, Date dataPrimeiraParcela, Integer qtdeParcelasPagar) {
         this.id = id;
@@ -42,6 +45,14 @@ public class Emprestimo {
         this.data = data;
         this.qtdeParcelas = qtdeParcelas;
         this.dataPrimeiraParcela = dataPrimeiraParcela;
+    }
+
+    public Emprestimo(String descricao, Long qtdeParcelas, Parcela parcela) {
+        this.descricao = descricao;
+        this.qtdeParcelas = qtdeParcelas;
+
+        parcelas = new ArrayList<>();
+        parcelas.add(parcela);
     }
 
     public Long getId() {
@@ -98,5 +109,13 @@ public class Emprestimo {
 
     public void setQtdeParcelasPagar(Integer qtdeParcelasPagar) {
         this.qtdeParcelasPagar = qtdeParcelasPagar;
+    }
+
+    public List<Parcela> getParcelas() {
+        return parcelas;
+    }
+
+    public void setParcelas(List<Parcela> parcelas) {
+        this.parcelas = parcelas;
     }
 }
