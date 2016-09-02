@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_pagar_todas) {
             Intent intent = new Intent(MainActivity.this, ParcelasPagarActivity.class);
             startActivity(intent);
-            return true;
+            return false;
         }
 
         return super.onOptionsItemSelected(item);

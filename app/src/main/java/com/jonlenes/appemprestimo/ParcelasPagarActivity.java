@@ -13,9 +13,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jonlenes.appemprestimo.Geral.DateUtil;
 import com.jonlenes.appemprestimo.Modelo.Emprestimo;
+import com.jonlenes.appemprestimo.Modelo.EmprestimoBo;
 import com.jonlenes.appemprestimo.Modelo.EmprestimoDao;
 import com.jonlenes.appemprestimo.Modelo.Parcela;
 import com.jonlenes.appemprestimo.Modelo.StatusParcela;
@@ -45,6 +47,9 @@ public class ParcelasPagarActivity extends AppCompatActivity {
         dateInicial = calendar.getTime();
         calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
         dateFinal = calendar.getTime();
+
+        Toast.makeText(this, dateInicial.toString(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, dateFinal.toString(), Toast.LENGTH_LONG).show();
 
         new BuscaParcelasAsyncTask().execute();
     }
@@ -93,7 +98,7 @@ public class ParcelasPagarActivity extends AppCompatActivity {
         protected List<Emprestimo> doInBackground(Void... params) {
             try {
 
-                return new EmprestimoDao().getEmprestimoComParcela(dateInicial, dateFinal, StatusParcela.pagar.ordinal());
+                return new EmprestimoBo().getEmprestimoComParcela(dateInicial, dateFinal, StatusParcela.pagar.ordinal());
 
             } catch (Exception e) {
                 exception = e;
@@ -177,7 +182,7 @@ public class ParcelasPagarActivity extends AppCompatActivity {
             viewHolder.tvNumeroParcela.setText(parcela.getNumero() + "/" + emprestimo.getQtdeParcelas());
             viewHolder.tvValorParcela.setText(NumberFormat.getCurrencyInstance().format(valorPagar));
             viewHolder.tvDescricaoEmprestimo.setText(emprestimo.getDescricao());
-            viewHolder.tvDataParcela.setText(DateUtil.formatDate(parcela.getDataPagamento()));
+            viewHolder.tvDataParcela.setText(DateUtil.formatDate(parcela.getDataVencimento()));
 
             return convertView;
         }
