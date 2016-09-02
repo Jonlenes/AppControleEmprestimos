@@ -56,8 +56,6 @@ public class ParcelasActivity extends AppCompatActivity {
             finish();
         else
             new BuscaParcelasAsyncTask().execute();
-
-        atualizaViewTotalizadora();
     }
 
     private void atualizaViewTotalizadora() {
@@ -221,6 +219,8 @@ public class ParcelasActivity extends AppCompatActivity {
             progressDialog.dismiss();
 
             if (exception == null) {
+
+                atualizaViewTotalizadora();
 
                 if (list.isEmpty()) {
 
